@@ -3,109 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Watt Wealth: Energy Tycoon</title>
+    <title>Watt Wealth</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { 
-            background: radial-gradient(circle, #1e1e2f 0%, #0d0d14 100%); 
-            color: white; text-align: center; font-family: sans-serif;
-            margin: 0; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; height: 100vh; overflow: hidden;
+            background: #1a1a2e; color: white; text-align: center; font-family: sans-serif;
+            margin: 0; display: flex; flex-direction: column; align-items: center; 
+            justify-content: center; height: 100vh;
         }
-        #energy-display { font-size: 56px; font-weight: bold; text-shadow: 0 0 15px #ffd700; }
-        .stats { font-size: 18px; color: #aaa; margin-bottom: 20px; }
+        #energy-display { font-size: 60px; font-weight: bold; color: #ffd700; }
         #click-btn { 
-            width: 200px; height: 200px; border-radius: 50%; border: 8px solid #333;
-            background: linear-gradient(145deg, #ffeb3b, #fbc02d); font-size: 70px; 
-            cursor: pointer; box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
-            transition: transform 0.1s; outline: none;
+            width: 200px; height: 200px; border-radius: 50%; border: none;
+            background: orange; font-size: 80px; cursor: pointer;
+            box-shadow: 0 0 20px rgba(255,165,0,0.5);
         }
-        #click-btn:active { transform: scale(0.95); }
-        .shop { margin-top: 30px; width: 90%; max-width: 400px; }
-        .shop-item { 
-            background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 15px; 
-            display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        button#buy-btn { background: #4caf50; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; }
-        button:disabled { background: #555 !important; }
+        .shop { margin-top: 20px; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; }
     </style>
 </head>
 <body>
 
     <div id="energy-display">⚡ 0</div>
-    <div class="stats">Прибуток: <span id="pps-display">0</span> Ватт/сек</div>
+    <p>Прибуток: <span id="pps-display">0</span>/сек</p>
     <button id="click-btn">⚡</button>
     
     <div class="shop">
-        <div class="shop-item">
-            <div><strong>Сонячна панель</strong><br><small>Ціна: <span id="price">50</span> ⚡</small></div>
-            <button id="buy-btn" onclick="buyGenerator()">Купити</button>
-        </div>
+        <p>Панель: <span id="price">50</span> ⚡</p>
+        <button id="buy-btn" onclick="buyGenerator()">Купити</button>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Розгортаємо гру на весь екран
+        tg.expand();
+        tg.ready(); // ПОВІДОМЛЯЄМО ТЕЛЕГРАМ, ЩО МИ ГОТОВІ
 
         let energy = 0;
         let pps = 0;
         let generatorPrice = 50;
 
-        // 1. Завантаження даних при старті
+        // ЗАВАНТАЖЕННЯ
         function loadData() {
-            tg.CloudStorage.getItems(['energy', 'pps', 'price'], (err, values) => {
-                if (!err) {
-                    if (values.energy) energy = parseInt(values.energy);
-                    if (values.pps) pps = parseInt(values.pps);
-                    if (values.price) generatorPrice = parseInt(values.price);
-                    updateUI();
-                }
-            });
+            try {
+                tg.CloudStorage.getItems(['energy', 'pps', 'price'], (err, values) => {
+                    if (!err) {
+                        if (values.energy) energy = parseInt(values.energy);
+                        if (values.pps) pps = parseInt(values.pps);
+                        if (values.price) generatorPrice = parseInt(values.price);
+                        updateUI();
+                        console.log("Дані завантажено");
+                    }
+                });
+            } catch (e) {
+                console.error("Помилка CloudStorage:", e);
+            }
         }
 
-        // 2. Збереження даних
+        // ЗБЕРЕЖЕННЯ
         function saveData() {
-            tg.CloudStorage.setItems({
+            const data = {
                 'energy': energy.toString(),
                 'pps': pps.toString(),
                 'price': generatorPrice.toString()
+            };
+            tg.CloudStorage.setItems(data, (err) => {
+                if (err) console.error("Помилка збереження:", err);
             });
         }
 
-        const btn = document.getElementById('click-btn');
-        btn.onclick = () => {
+        document.getElementById('click-btn').onclick = () => {
             energy += 1;
-            updateUI();
-            saveData(); // Зберігаємо після кожного кліку (або можна рідше)
-        };
-
-        function buyGenerator() {
-            if (energy >= generatorPrice) {
-                energy -= generatorPrice;
-                pps += 1;
-                generatorPrice = Math.floor(generatorPrice * 1.5);
-                updateUI();
-                saveData();
-            }
-        }
-
-        setInterval(() => {
-            if (pps > 0) {
-                energy += pps;
-                updateUI();
-                saveData();
-            }
-        }, 5000); // Зберігаємо пасивний дохід кожні 5 секунд
-
-        function updateUI() {
-            document.getElementById('energy-display').innerText = "⚡ " + energy;
-            document.getElementById('pps-display').innerText = pps;
-            document.getElementById('price').innerText = generatorPrice;
-            document.getElementById('buy-btn').disabled = energy < generatorPrice;
-        }
-
-        loadData(); // Викликаємо завантаження при запускy
-    </script>
-</body>
-</html>
