@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Watt Wealth: Energy Tycoon</title>
+    <style>
+        body { 
+            background: radial-gradient(circle, #1e1e2f 0%, #0d0d14 100%); 
+            color: white; 
+            text-align: center; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #energy-display { 
+            font-size: 56px; 
+            font-weight: bold;
+            text-shadow: 0 0 15px #ffd700;
+            margin-bottom: 10px;
+        }
+        .stats { font-size: 18px; color: #aaa; margin-bottom: 30px; }
+        
+        #click-btn { 
+            width: 220px; 
+            height: 220px; 
+            border-radius: 50%; 
+            border: 8px solid #333;
+            background: linear-gradient(145deg, #ffeb3b, #fbc02d);
+            font-size: 70px; 
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+            transition: transform 0.1s;
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #click-btn:active { transform: scale(0.92); }
+
+        .shop {
+            margin-top: 40px;
+            width: 90%;
+            max-width: 400px;
+        }
+        .shop-item { 
+            background: rgba(255, 255, 255, 0.05); 
+            padding: 15px; 
+            border-radius: 15px; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .shop-item button {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .shop-item button:disabled { background: #555; }
+    </style>
+</head>
+<body>
+
+    <div id="energy-display">⚡ 0</div>
+    <div class="stats">Прибуток: <span id="pps-display">0</span> Ватт/сек</div>
+
+    <button id="click-btn">⚡</button>
+    
+    <div class="shop">
+        <div class="shop-item">
+            <div>
+                <strong>Сонячна панель</strong><br>
+                <small>Ціна: <span id="price">50</span> ⚡</small>
+            </div>
+            <button id="buy-btn" onclick="buyGenerator()">Купити</button>
+        </div>
+    </div>
+
+    <script>
+        let energy = 0;
+        let pps = 0; // пасивний дохід за секунду
+        let generatorPrice = 50;
+
+        const btn = document.getElementById('click-btn');
+        const display = document.getElementById('energy-display');
+        const ppsDisplay = document.getElementById('pps-display');
+        const priceDisplay = document.getElementById('price');
+        const buyBtn = document.getElementById('buy-btn');
+
+        // Клік
+        btn.onclick = () => {
+            energy += 1;
+            updateUI();
+        };
+
+        // Купівля генератора
+        function buyGenerator() {
+            if (energy >= generatorPrice) {
+                energy -= generatorPrice;
+                pps += 1;
+                generatorPrice = Math.floor(generatorPrice * 1.5); // Ціна зростає
+                updateUI();
+            }
+        }
+
+        // Автоматичне нарахування кожну секунду
+        setInterval(() => {
+            energy += pps;
+            updateUI();
+        }, 1000);
+
+        function updateUI() {
+            display.innerText = "⚡ " + energy;
+            ppsDisplay.innerText = pps;
+            priceDisplay.innerText = generatorPrice;
+            buyBtn.disabled = energy < generatorPrice;
+        }
+    </script>
+</body>
+</html>
